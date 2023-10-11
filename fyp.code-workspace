@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "TestFile"
+		},
+		{
+			"path": "Execute"
+		}
+	],
+	"launch": {
+		"version": "0.2.0",
+		"configurations": []
+	}
+}
