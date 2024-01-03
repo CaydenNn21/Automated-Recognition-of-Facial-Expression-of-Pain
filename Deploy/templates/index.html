@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Prediction</title>
+</head>
+<body>
+  <h1>Pain Prediction</h1>
+  <h2>Triage System</h2>
+  <video id="webcam" width="320" height="240" autoplay></video>
+  <button onclick="startAutoCapture()">Start Auto Capture</button>
+  <canvas id="canvas" width="320" height="240"></canvas>
+  <button onclick="predict()">Predict</button>
+  <p id="prediction"></p>
+
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const predictionText = document.getElementById('prediction');
+        let webcamStream;
+        let capturedFrames = [];
+
+        // Access the user's webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+                webcamStream = stream;
+            })
+            .catch((error) => console.error('Error accessing webcam:', error));
+
+        // Start auto capture for 5 seconds
+        function startAutoCapture() {
+            capturedFrames = [];
+            captureImagesForDuration(5000);
+        }
+
+        // Stop auto capture
+        function stopAutoCapture() {
+            clearInterval(captureInterval);
+            startWebcam(); // Start webcam stream after stopping auto-capture
+        }
+
+        // Function to start the webcam stream
+        function startWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    video.srcObject = stream;
+                    webcamStream = stream;
+                })
+                .catch((error) => console.error('Error accessing webcam:', error));
+        }
+
+        // Function to capture images for the specified duration
+        function captureImagesForDuration(duration) {
+
+            captureInterval = setInterval(() => {            
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL('image/jpeg');
+                capturedFrames.push(imageData);
+            }, 33);  // Capture an image every 100 milliseconds
+            
+            setTimeout(() => {
+                stopAutoCapture();
+            }, duration);
+        }
+
+
+        // Function to send all captured frames for prediction
+        function predict() {
+            // Send all captured frames to the server for prediction
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ captured_frames: capturedFrames }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                predictionText.innerHTML = `Predicted Class: ${data.class} (${(data.confidence * 100).toFixed(2)}%)`;
+            })
+            .catch(error => console.error('Error predicting:', error));
+        }
+    </script>
+</body>
+</html>
