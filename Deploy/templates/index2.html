@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pain Prediction Interface</title>
+</head>
+<body>
+    <h1>Pain Prediction Interface</h1>
+    <div id="video-container">
+        <img id="video-feed" src="{{ url_for('video_feed') }}" alt="Video Feed">
+    </div>
+    <div>
+        <h2>Result Log</h2>
+        <textarea id="result-log" rows="10" cols="50" readonly></textarea>
+    </div>
+	<div>
+        <h2>Error Log</h2>
+        <textarea id="error-log" rows="5" cols="50" readonly></textarea>
+    </div>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+	<script type="text/javascript" charset="utf-8">
+		var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+		socket.on('connect', function() {
+	        console.log('Connected to server');
+	        socket.emit('my_event', {'data': 'Hello, server!'});
+      });
+		
+		socket.on('result', function(msg) {
+			console.log('Received: ' + msg);
+		});
+	</script>
+	
+</body>
+</html>

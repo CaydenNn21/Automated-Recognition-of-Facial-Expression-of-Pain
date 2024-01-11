@@ -3,20 +3,23 @@ import base64
 import sys
 
 import cv2
-sys.path.append("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\SourceCode")
+sys.path.append("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\Src\\Automated-Recognition-of-Facial-Expression-of-Pain")
 import io
 from flask import Flask, render_template, request, jsonify
 import numpy as np
 from keras.models import load_model
 from keras.preprocessing import image
-from Module.TestFile.F1Score import F1Score
 from Module.TestFile import preprocessData
 import tensorflow as tf
 
 app = Flask(__name__)
 
 # Load the trained model
-model = load_model("C:\\Users\\xiao cheng\\Downloads\\model_fold_1.h5",custom_objects={"F1Score": F1Score})
+# model = load_model("C:\\Users\\xiao cheng\\Downloads\\model_fold_15.h5",custom_objects={"F1Score": F1Score})
+model = load_model("_model\\model_fold_11.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
+    average="weighted", threshold=None, name='f1_score', dtype=None
+)})
+
 
 # Define the class labels (modify based on your classes)
 class_labels = ['No Pain', 'Mild Pain', 'Moderate Pain', 'Very Pain', 'Severe Pain']

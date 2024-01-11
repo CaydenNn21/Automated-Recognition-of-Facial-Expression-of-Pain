@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam Prediction</title>
+    <title>Pain Prediction</title>
 </head>
 <body>
   <h1>Pain Prediction</h1>
@@ -11,7 +11,7 @@
   <video id="webcam" width="320" height="240" autoplay></video>
   <button onclick="startAutoCapture()">Start Auto Capture</button>
   <canvas id="canvas" width="320" height="240"></canvas>
-  <button onclick="predict()">Predict</button>
+  <button id= "predictButton"onclick="predict()"disabled>Predict</button>
   <p id="prediction"></p>
 
     <script>
@@ -31,12 +31,15 @@
 
         // Start auto capture for 5 seconds
         function startAutoCapture() {
+            document.getElementById("predictButton").disabled = true;
             capturedFrames = [];
+            predictionText.innerHTML = '';
             captureImagesForDuration(5000);
         }
 
         // Stop auto capture
         function stopAutoCapture() {
+            document.getElementById("predictButton").disabled = false;
             clearInterval(captureInterval);
             startWebcam(); // Start webcam stream after stopping auto-capture
         }
@@ -53,7 +56,7 @@
 
         // Function to capture images for the specified duration
         function captureImagesForDuration(duration) {
-
+            document.getElementById("predictButton").disabled = true;
             captureInterval = setInterval(() => {            
                 const context = canvas.getContext('2d');
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -69,6 +72,8 @@
 
         // Function to send all captured frames for prediction
         function predict() {
+            document.getElementById("predictButton").disabled = true;
+
             // Send all captured frames to the server for prediction
             fetch('/predict', {
                 method: 'POST',
@@ -80,6 +85,8 @@
             .then(response => response.json())
             .then(data => {
                 predictionText.innerHTML = `Predicted Class: ${data.class} (${(data.confidence * 100).toFixed(2)}%)`;
+                document.getElementById("predictButton").disabled = false;
+
             })
             .catch(error => console.error('Error predicting:', error));
         }

@@ -40,88 +40,99 @@ class preprocess():
 
 
     def landmarkDetection(self):
-        frames = self.frames
-        output = []
-        framesLandmark = []
-        model = FaceAlignment(landmarks_type=LandmarksType.TWO_D, face_detector='blazeface',
-                              face_detector_kwargs={'back_model': True}, device='cpu')
-        for n in range(0, len(frames)):
-            img = (frames[n])
-            img = img.copy()
-            landmarks = model.get_landmarks(img)
-            landmarks_tuple = []
-            if landmarks is not None:
-                # Iterate over the detected faces
-                for pred in landmarks:
-                    # Draw landmarks on the frame
-                    for point in pred:
-                        x, y = point
-                        landmarks_tuple.append((int(x), int(y)))
-                        if 0 <= x < img.shape[1] and 0 <= y < img.shape[0]:
-                            cv.circle(img, (int(x), int(y)), 2, (0, 255, 0), -1)
+        try:
+            frames = self.frames
+            output = []
+            framesLandmark = []
+            model = FaceAlignment(landmarks_type=LandmarksType.TWO_D, face_detector='blazeface',
+                                  face_detector_kwargs={'back_model': True}, device='cpu')
+            for n in range(0, len(frames)):
+                img = (frames[n])
+                img = img.copy()
+                landmarks = model.get_landmarks(img)
+                landmarks_tuple = []
+                if landmarks is not None:
+                    # Iterate over the detected faces
+                    for pred in landmarks:
+                        # Draw landmarks on the frame
+                        for point in pred:
+                            x, y = point
+                            landmarks_tuple.append((int(x), int(y)))
+                            if 0 <= x < img.shape[1] and 0 <= y < img.shape[0]:
+                                cv.circle(img, (int(x), int(y)), 2, (0, 255, 0), -1)
 
-            framesLandmark.append(landmarks_tuple)
-            output.append(img)
-        self.framesLandmark = framesLandmark
+                framesLandmark.append(landmarks_tuple)
+                output.append(img)
+            self.framesLandmark = framesLandmark
+
+        except Exception as e:
+            print("Error occurred at landmark detection:", e)
 
     def tiltAlign(self):
         frames = self.frames
         output =[]
-        for i in range(len(frames)):
-            img = frames[i]
-            landmarkTuple = self.framesLandmark[i]
-            # Landmark index of reight eye and left eye are
-            right_eye_cood = [(landmarkTuple[39][0] + landmarkTuple[36][0])/2, (landmarkTuple[39][1] + landmarkTuple[36][1])/2]
-            left_eye_cood = [(landmarkTuple[45][0] + landmarkTuple[42][0])/2, (landmarkTuple[45][1] + landmarkTuple[42][1])/2]
-            x1, y1 = right_eye_cood
-            x2, y2 = left_eye_cood
+        try:
+            for i in range(len(frames)):
+                img = frames[i]
+                landmarkTuple = self.framesLandmark[i]
+                # Landmark index of reight eye and left eye are
+                right_eye_cood = [(landmarkTuple[39][0] + landmarkTuple[36][0])/2, (landmarkTuple[39][1] + landmarkTuple[36][1])/2]
+                left_eye_cood = [(landmarkTuple[45][0] + landmarkTuple[42][0])/2, (landmarkTuple[45][1] + landmarkTuple[42][1])/2]
+                x1, y1 = right_eye_cood
+                x2, y2 = left_eye_cood
 
-            a = abs(y1 - y2)
-            b = abs(x2 - x1)
-            c = math.sqrt(a * a + b * b)
+                a = abs(y1 - y2)
+                b = abs(x2 - x1)
+                c = math.sqrt(a * a + b * b)
 
-            cos_alpha = (b * b + c * c - a * a) / (2 * b * c)
+                cos_alpha = (b * b + c * c - a * a) / (2 * b * c)
 
-            alpha = np.arccos(cos_alpha)
-            alpha = (alpha * 180) / math.pi
-            img = Image.fromarray(img)
-            if y1>y2 :
-                alpha = -alpha
-            img = np.array(img.rotate(alpha))
-            output.append(img)
+                alpha = np.arccos(cos_alpha)
+                alpha = (alpha * 180) / math.pi
+                img = Image.fromarray(img)
+                if y1>y2 :
+                    alpha = -alpha
+                img = np.array(img.rotate(alpha))
+                output.append(img)
+        except Exception as e:
+            print("Error occurred at tilt and align:", e)
+
         return output
     
     def maskFace(self):
         routes = [i for i in range (16,-1,-1)] + [i for i in range (17,26+1)]
-        
         frames = self.frames
         output = []
-        for n in range(len(frames)):
-            routes_cod = []
-            mask = None
-            out = None
-            landmarks_tuple = self.framesLandmark[n]
-            img = (frames[n])
-            img = img.copy()
-            img2 = img.copy()
-            for i in range (0, len(routes)-1):
-                source_point = routes[i]
-                target_point = routes[i+1]
-                
-                source_cod = landmarks_tuple[source_point]
-                target_cod = landmarks_tuple[target_point]
-                routes_cod.append(source_cod)
-                cv.line(img, (source_cod), (target_cod),(255,255,255),2)
+        try:
+            for n in range(len(frames)):
+                routes_cod = []
+                mask = None
+                out = None
+                landmarks_tuple = self.framesLandmark[n]
+                img = (frames[n])
+                img = img.copy()
+                img2 = img.copy()
+                for i in range (0, len(routes)-1):
+                    source_point = routes[i]
+                    target_point = routes[i+1]
+                    
+                    source_cod = landmarks_tuple[source_point]
+                    target_cod = landmarks_tuple[target_point]
+                    routes_cod.append(source_cod)
+                    cv.line(img, (source_cod), (target_cod),(255,255,255),2)
 
-            routes_cod = routes_cod+[routes_cod[0]]
+                routes_cod = routes_cod+[routes_cod[0]]
 
-            mask = np.zeros((img.shape[0], img.shape[1]))
-            mask = cv.fillConvexPoly(mask, np.array(routes_cod),1)
-            mask = mask.astype(np.bool_)
-            out = np.zeros_like(img)
-            out[mask] = img2[mask]
-            # plt.imshow(cv.cvtColor(out, cv.COLOR_BGR2RGB))
-            output.append(cv.cvtColor(self.cropFaceArea(out, mask), cv.COLOR_BGR2RGB))
+                mask = np.zeros((img.shape[0], img.shape[1]))
+                mask = cv.fillConvexPoly(mask, np.array(routes_cod),1)
+                mask = mask.astype(np.bool_)
+                out = np.zeros_like(img)
+                out[mask] = img2[mask]
+                # plt.imshow(cv.cvtColor(out, cv.COLOR_BGR2RGB))
+                output.append(cv.cvtColor(self.cropFaceArea(out, mask), cv.COLOR_BGR2RGB))
+        except Exception as e:
+            print("Error occurred at masking:", e)
+       
         return output
 
     def cropFaceArea(self, frame, mask):
@@ -147,7 +158,7 @@ class preprocess():
         frames = self.frames
 
         if not os.path.exists("rawFrames"):
-            os.mkdir("rawFrames")
+            os.mkdir("rawFrames")            
 
         for i in range(len(frames)):
             cv.imwrite(f'{"rawFrames"}\selectedFrames_{i}.png', frames[i])
