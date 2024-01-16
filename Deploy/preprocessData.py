@@ -163,53 +163,6 @@ class preprocess():
         for i in range(len(frames)):
             cv.imwrite(f'{"rawFrames"}\selectedFrames_{i}.png', frames[i])
 
-
-
-    def padding_normalization(self, target_length):
-        """
-        Preprocesses a sequence of images and pads them to a target length.
-
-        Args:
-            images (list): List of PIL images.
-            target_length (int): Desired length of the sequence after padding.
-
-        Returns:
-            torch.Tensor: Tensor of preprocessed and padded images.
-        """
-        # Resize the images to a consistent size
-        array_images = self.frames
-        images =[]
-
-        for image in array_images:
-            images.append((Image.fromarray(image)))
-
-        resized_images = [TF.resize((img), [150, 150]) for img in images]
-
-        # Convert the images to tensors
-        tensor_images = [TF.to_tensor(img) for img in resized_images]
-
-        # Stack the tensor images along a new dimension (sequence dimension)
-        tensor_sequence = torch.stack(tensor_images)
-
-        # Calculate the current length of the sequence
-        current_length = tensor_sequence.size(0)
-
-        # Pad the sequence if necessary
-        if current_length < target_length:
-            padding_length = target_length - current_length
-            padding = torch.zeros(padding_length, *tensor_sequence.shape[1:])
-            tensor_sequence = torch.cat((tensor_sequence, padding))
-
-        # Normalize the tensor sequence
-        # Define the mean and standard deviation values for normalization
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-
-        # Apply normalization to the tensor sequence
-        normalize = transforms.Normalize(mean=mean, std=std)
-        self.normalized_sequence = normalize(tensor_sequence)
-
-        return self.normalized_sequence
     
     def normalized_img(self):
         frames_temp = []
