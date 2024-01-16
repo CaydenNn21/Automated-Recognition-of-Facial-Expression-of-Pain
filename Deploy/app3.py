@@ -1,23 +1,23 @@
 # server.py
 
 import base64
-import sys
-sys.path.append("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\Src\\Automated-Recognition-of-Facial-Expression-of-Pain")
+# import sys
+# sys.path.append("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\Src\\Automated-Recognition-of-Facial-Expression-of-Pain")
 from flask import Flask, render_template, request, jsonify
 import cv2
 import numpy as np
 from flask_socketio import SocketIO, emit
-import cv2
 import tensorflow as tf
 from mtcnn import MTCNN
 from keras.models import load_model
-from Module.TestFile import preprocessData
+import preprocessData
 
 app = Flask(__name__)
 
-model = load_model("_model\\model_fold_15.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
+model = load_model("_model\\model_fold_2.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
     average="weighted", threshold=None, name='f1_score', dtype=None
 )})
+print(model.summary())
 face_detector = MTCNN()
 class_labels = ['None', 'Mild', 'Moderate', 'Very Pain', 'Severe']
 
@@ -92,7 +92,7 @@ def predict():
         # Log the result
         log_result(f"Pain Class: {predicted}")
 
-        return jsonify({"result": "success", "image": img_base64, "class": predicted})
+        return jsonify({"result": "success", "image": img_base64, "class": predicted, "value":class_labels.index(predicted)})
 
     except Exception as e:
         log_result(f"Error: {str(e)}")

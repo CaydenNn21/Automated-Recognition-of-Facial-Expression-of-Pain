@@ -2,23 +2,24 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pain Prediction</title>
-	<script src="https://cdn.tailwindcss.com"></script>
-	<script>
-	  tailwind.config = {
-		theme: {
-		  extend: {
-			colors: {
-			  clifford: '#da373d',
-			}
-		  }
-		}
-	  }
-	</script>
-<!-- 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              clifford: "#da373d",
+            },
+          },
+        },
+      };
+    </script>
+    <!-- 
 	<style>
         
 
@@ -32,185 +33,298 @@
             box-sizing: border-box;
         }
     </style> -->
-</head>
-<body class="bg-gray-100 px-8 py-4">
-
+  </head>
+  <body class="bg-gray-100 px-8 py-4">
     <h1 class="text-4xl font-bold mb-4 text-center">Pain Prediction</h1>
 
-    <div id="logs-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-0">
-		<div class="lg:px-[10%]">
-			<div class="relative mb-4 pt-[75%]">
-		        <video id="video" class="absolute inset-0 w-full h-full" autoplay></video>
-		    </div>
-		</div>
-		<div class="lg:px-[10%]">
-			<div class="relative mb-4 pt-[75%]">
-				<canvas id="canvas" class="absolute inset-0 w-full h-full"></canvas>
-			</div>	
-		</div>
-	
-		<div class="col-span-2">
-			<p id="reminder" class="text-center text-red-500"></p>
-		</div>
-		
-		<div>
-            <h2 class="text-xl mb-2">Result Log</h2>
-            <textarea id="resultTextArea" class="w-full p-2" rows="10" cols="50" readonly></textarea>
-			<button id="clear_result" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="clear_result()">Clear Result</button>
+    <div
+      id="logs-container"
+      class="grid grid-cols-1 md:grid-cols-2 gap-4 gap-y-0"
+    >
+      <div class="lg:px-[10%]">
+        <div class="relative mb-4 pt-[75%]">
+          <video
+            id="video"
+            class="absolute inset-0 w-full h-full"
+            autoplay
+          ></video>
+        </div>
+      </div>
+      <div class="lg:px-[10%]">
+        <div class="relative mb-4 pt-[75%]">
+          <canvas id="canvas" class="absolute inset-0 w-full h-full"></canvas>
+        </div>
+      </div>
+
+      <div class="col-span-2">
+        <p id="reminder" class="text-center text-red-500"></p>
+      </div>
+
+      <!-- First Column -->
+      <div class="col-span-1 row-span-2">
+        <canvas id="painChart" class="max-w-screen-lg w-200px h-200px"></canvas>
+      </div>
+
+      <!-- Second Column -->
+      <div class="col-span-1">
+        <!-- First Row -->
+        <div class="mb-4">
+          <h2 class="text-xl mb-2">Result Log</h2>
+          <textarea
+            id="resultTextArea"
+            class="w-full h-full p-2"
+            rows="5"
+            cols="50"
+            readonly
+          ></textarea>
+          <button
+            id="clear_result"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onclick="clear_result()"
+          >
+            Clear Result
+          </button>
         </div>
 
+        <!-- Second Row -->
         <div>
-            <h2 class="text-xl mb-2">Error Log</h2>
-            <textarea id="error-log" class="w-full p-2" rows="10" cols="50" readonly></textarea>
-			<button id="clear_error_log" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onclick="clear_error_log()">Clear Error</button>
+          <h2 class="text-xl mb-2">Error Log</h2>
+          <textarea
+            id="error-log"
+            class="w-full h-full p-2"
+            rows="5"
+            cols="50"
+            readonly
+          ></textarea>
+          <button
+            id="clear_error_log"
+            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            onclick="clear_error_log()"
+          >
+            Clear Error
+          </button>
         </div>
+      </div>
     </div>
 
-   
-
     <script>
-        const video = document.getElementById('video');
-		const hiddenCanvas = document.createElement('canvas');
-		const hiddenContext = hiddenCanvas.getContext('2d');
-        const canvas = document.getElementById('canvas');
-		const context = canvas.getContext('2d')
-        const resultTextArea = document.getElementById('resultTextArea');
-		const errorTextArea = document.getElementById("error-log")
-		const reminder = document.getElementById('reminder');
+      const video = document.getElementById("video");
+      const hiddenCanvas = document.createElement("canvas");
+      const hiddenContext = hiddenCanvas.getContext("2d");
+      const canvas = document.getElementById("canvas");
+      const context = canvas.getContext("2d");
+      const resultTextArea = document.getElementById("resultTextArea");
+      const errorTextArea = document.getElementById("error-log");
+      const reminder = document.getElementById("reminder");
+      var videoFlag = true;
+      var ctx = document.getElementById("painChart").getContext("2d");
+      var timeLabels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // Array to store timestamp labels
+      var painData = []; // Array to store pain class data
+      const painChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          //   labels: timeLabels,
+          labels: timeLabels,
+          datasets: [
+            {
+              label: "Most recent result",
+              borderColor: "rgba(75, 192, 192, 1)",
+              data: painData,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: "linear",
+              position: "bottom",
+              suggestedMin: 0,
+              suggestedMax: 9,
+            },
+            y: {
+              suggestedMin: 0,
+              suggestedMax: 4,
+            },
+          },
+        },
+      });
 
-		
-		hiddenCanvas.width = 640
-		hiddenCanvas.height = 480
+      hiddenCanvas.width = 640;
+      hiddenCanvas.height = 480;
 
+      function updateChart(painClass) {
+        if (painClass === undefined || painClass === null) return;
+        painData.push(painClass);
 
+        // Limit the number of data points to keep the chart readable
+        if (painData.length > 10) {
+          painData.shift();
+        }
 
-		function clear_result(){
-			resultTextArea.value = ""
-		}
+        painChart.update();
+      }
 
-		function clear_error_log(){
-			errorTextArea.value =""
-		}
+      function clear_result() {
+        painData = [];
+        painChart.config.data.datasets[0].data = painData;
+        painChart.update();
+        resultTextArea.value = "";
+      }
 
-		function isItDark(imageSrc,callback) {
+      function clear_error_log() {
+        errorTextArea.value = "";
+      }
+
+      function isItDark(imageSrc, callback) {
         var fuzzy = 0.1;
         var img = document.createElement("img");
         img.src = imageSrc;
         img.style.display = "none";
         document.body.appendChild(img);
 
-        img.onload = function() {
-            // create canvas
-            var canvas = document.createElement("canvas");
-            canvas.width = this.width;
-            canvas.height = this.height;
+        img.onload = function () {
+          // create canvas
+          var canvas = document.createElement("canvas");
+          canvas.width = this.width;
+          canvas.height = this.height;
 
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(this,0,0);
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(this, 0, 0);
 
-            var imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-            var data = imageData.data;
-            var r,g,b, max_rgb;
-            var light = 0, dark = 0;
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          var data = imageData.data;
+          var r, g, b, max_rgb;
+          var light = 0,
+            dark = 0;
 
-            for(var x = 0, len = data.length; x < len; x+=4) {
-                r = data[x];
-                g = data[x+1];
-                b = data[x+2];
+          for (var x = 0, len = data.length; x < len; x += 4) {
+            r = data[x];
+            g = data[x + 1];
+            b = data[x + 2];
 
-                max_rgb = Math.max(Math.max(r, g), b);
-                if (max_rgb < 128)
-                    dark++;
-                else
-                    light++;
-            }
+            max_rgb = Math.max(Math.max(r, g), b);
+            if (max_rgb < 128) dark++;
+            else light++;
+          }
 
-            var dl_diff = ((light - dark) / (this.width*this.height));
-            if (dl_diff + fuzzy < 0)
-                callback(true); /* Dark. */
-            else
-                callback(false);  /* Not dark. */
-        	}
-    	}
+          var dl_diff = (light - dark) / (this.width * this.height);
+          if (dl_diff + fuzzy < 0) callback(true); /* Dark. */
+          else callback(false); /* Not dark. */
+        };
+      }
 
-		function captureVideo(video) {
-		    var canvas = document.createElement("canvas");
-		    canvas.width = video.videoWidth;
-		    canvas.height = video.videoHeight;
-			console.log(video.videoWidth, video.videoHeight)
-		    var canvasContext = canvas.getContext("2d");
-		    canvasContext.drawImage(video, 0, 0);
-		    return canvas.toDataURL('image/png');
-		}
+      function captureVideo(video) {
+        var canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        var canvasContext = canvas.getContext("2d");
+        canvasContext.drawImage(video, 0, 0);
+        return canvas.toDataURL("image/png");
+      }
 
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+          // Check brightness every 5 seconds
+          setInterval(() => {
+            var img = document.createElement("img");
+            img.setAttribute("src", captureVideo(video));
 
-
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
-                video.srcObject = stream;
-				// Check brightness every 5 seconds
-                setInterval(() => {
-					console.log("checking brightness")
-					var img = document.createElement("img");
-                    img.setAttribute('src', captureVideo(video))
-
-					isItDark(img.src, function(flag){
-						if (flag) {
-                        reminder.textContent = 'Low light detected! Adjust the lighting for better results.';
-	                    } else {
-	                        reminder.textContent = '';
-	                    }
-					});
-
-                    
-                }, 5000);
-            })
-            .catch((err) => {
-                console.error('Error accessing webcam: ', err);
+            isItDark(img.src, function (flag) {
+              if (flag) {
+                reminder.textContent =
+                  "Low light detected! Adjust the lighting for better results.";
+              } else {
+                reminder.textContent = "";
+              }
             });
+          }, 5000);
+        })
+        .catch((err) => {
+          videoFlag = false;
+          console.error("Error accessing webcam: ", err);
+        });
 
-			setInterval(() => {
-	        // Capture a frame from the video
-	        hiddenContext.drawImage(video, 0, 0, hiddenCanvas.width, hiddenCanvas.height);
+      setInterval(() => {
+        // Capture a frame from the video
+        hiddenContext.drawImage(
+          video,
+          0,
+          0,
+          hiddenCanvas.width,
+          hiddenCanvas.height
+        );
 
-	        // Convert the canvas content to a blob
-	        hiddenCanvas.toBlob((blob) => {
-	            // Create a FormData object and append the blob
-	            const formData = new FormData();
-	            formData.append('image', blob, 'frame.png');
+        // Convert the canvas content to a blob
+        hiddenCanvas.toBlob(
+          (blob) => {
+            // Create a FormData object and append the blob
+            const formData = new FormData();
+            formData.append("image", blob, "frame.png");
 
-	            // Send the frame to the server for prediction
-	            fetch('/predict', {
-	                method: 'POST',
-	                body: formData
-	            })
-	            .then(response => response.json())
-	            .then(data => {
-	                if (data.result === 'success') {
-	                    // Update the result textarea with the class
-	                    resultTextArea.value = `Prediction: ${data.class}\n${resultTextArea.value}`;
-	                    
-	                    // Set the image with bounding box as the source for the canvas
-	                    const img = new Image();
-						
-						img.onload = () => {
-							context.drawImage(img, 0, 0, canvas.width, canvas.height);
-						};
-						img.src = `data:image/png;base64,${data.image}`;
-	                } else {
-						var currentDateTime = new Date();
-						// Format the date and time
-						var formattedDateTime = currentDateTime.toLocaleString();
-	                    // Handle the error
-	                    errorTextArea.value = "[" + formattedDateTime + "]"+ ` Error: ${data.message}\n${errorTextArea.value}`;
-						reminder.textContent = data.message;
-	                }
-	            })
-	            .catch(error => {
-	                console.error('Error sending frame to server: ', error);
-	            });
-	        }, 'image/png',"1");
-	    }, 3000);
-	</script>
-</body>
+            // Send the frame to the server for prediction
+            try {
+              if (videoFlag == false) {
+                throw "Unable to assess camera";
+              }
+              fetch("/predict", {
+                method: "POST",
+                body: formData,
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  var currentDateTime = new Date();
+                  // Format the date and time
+                  var formattedDateTime = currentDateTime.toLocaleString();
+                  // Handle the error
+                  if (data.result === "success") {
+                    // Update the result textarea with the class
+                    resultTextArea.value = `Prediction: ${data.class}\n${resultTextArea.value}`;
+
+                    // Set the image with bounding box as the source for the canvas
+                    const img = new Image();
+
+                    img.onload = () => {
+                      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    };
+                    img.src = `data:image/png;base64,${data.image}`;
+                  } else {
+                    errorTextArea.value =
+                      "[" +
+                      formattedDateTime +
+                      "]" +
+                      ` Error: ${data.message}\n${errorTextArea.value}`;
+                    reminder.textContent = data.message;
+                  }
+
+                  updateChart(data.value);
+                })
+                .catch((error) => {
+                  console.error("Error sending frame to server: ", error);
+                });
+            } catch (err) {
+              var currentDateTime = new Date();
+              // Format the date and time
+              var formattedDateTime = currentDateTime.toLocaleString();
+              reminder.textContent = ` Error: ${err}`;
+              ("");
+
+              errorTextArea.value =
+                "[" +
+                formattedDateTime +
+                "]" +
+                ` Error: ${err}\n${errorTextArea.value}`;
+              console.error("Error sending frame to server: ", err);
+            }
+          },
+          "image/png",
+          "1"
+        );
+      }, 3000);
+    </script>
+  </body>
 </html>
