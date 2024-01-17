@@ -1,5 +1,6 @@
 face_alignment==1.4.0
 Flask==2.1.2
+flask_ngrok==0.0.25
 Flask_SocketIO==5.3.6
 keras==2.14.0
 matplotlib==3.7.0
