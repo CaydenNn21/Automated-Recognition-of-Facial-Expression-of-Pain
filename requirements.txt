@@ -1,14 +1,6 @@
 face_alignment>=1.4.0
-Flask>=2.1.2
+pyngrok==4.1.1
 flask_ngrok
-Flask_SocketIO>=5.3.6
-keras
-matplotlib>=3.7.0
+Flask_SocketIO
 mtcnn
-numpy
-opencv_python>=4.7.0.72
-Pillow>=9.4.0
-scikit_learn>=1.2.2
-torch>=2.0.0
-torchvision>=0.15.1
-pyngrok>=4.1.1
+torch>=1.4

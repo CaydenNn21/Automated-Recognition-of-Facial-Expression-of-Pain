@@ -17,7 +17,7 @@ class preprocess():
         self.frames = frames
         
         # Select 21 frames from the video sequence for prediction
-        # self.frames = self.selectFrame()
+        # self.frames = self.selectFrame() 
 
         # Save the selected frames to a folder
         self.saveFramestoFiles()
