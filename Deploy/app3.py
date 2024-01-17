@@ -14,11 +14,11 @@ from keras.models import load_model
 import preprocessData
 
 app = Flask(__name__)
+run_with_ngrok(app)
 
-model = load_model("_model\\model_fold_2.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
+model = load_model("_model/model_fold_2.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
     average="weighted", threshold=0.4, name='f1_score', dtype=None
 )})
-print(model.summary())
 face_detector = MTCNN()
 class_labels = ['None', 'Mild', 'Moderate', 'Very Pain', 'Severe']
 
@@ -104,4 +104,4 @@ def log_result(message):
     print(message)
 
 if __name__ == '__main__':
-    run_with_ngrok(app)
+    app.run()
