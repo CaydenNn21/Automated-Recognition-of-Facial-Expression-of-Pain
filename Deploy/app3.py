@@ -1,6 +1,7 @@
 # server.py
 
 import base64
+from flask_ngrok import run_with_ngrok
 # import sys
 # sys.path.append("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\Src\\Automated-Recognition-of-Facial-Expression-of-Pain")
 from flask import Flask, render_template, request, jsonify
@@ -15,7 +16,7 @@ import preprocessData
 app = Flask(__name__)
 
 model = load_model("_model\\model_fold_2.h5",custom_objects={"F1Score": tf.keras.metrics.F1Score(
-    average="weighted", threshold=None, name='f1_score', dtype=None
+    average="weighted", threshold=0.4, name='f1_score', dtype=None
 )})
 print(model.summary())
 face_detector = MTCNN()
@@ -103,4 +104,4 @@ def log_result(message):
     print(message)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    run_with_ngrok(app)
