@@ -20,7 +20,7 @@ class preprocess():
         # self.frames = self.selectFrame() 
 
         # Save the selected frames to a folder
-        self.saveFramestoFiles()
+        # self.saveFramestoFiles()
 
         # Do landmark detection on the input frames for face recognition proposes
         self.landmarkDetection()
@@ -41,20 +41,12 @@ class preprocess():
 
     def landmarkDetection(self):
 
-        devices = tf.config.list_physical_devices()
-        for device in devices:
-            if(device.device_type == "GPU"):
-                PU = 'cuda:0'
-                break
-            else: 
-                PU = "cpu"
-
         try:
             frames = self.frames
             output = []
             framesLandmark = []
             model = FaceAlignment(landmarks_type=LandmarksType.TWO_D, face_detector='blazeface',
-                                  face_detector_kwargs={'back_model': True}, device=PU)
+                                  face_detector_kwargs={'back_model': True}, device='cpu')
             for n in range(0, len(frames)):
                 img = (frames[n])
                 img = img.copy()
