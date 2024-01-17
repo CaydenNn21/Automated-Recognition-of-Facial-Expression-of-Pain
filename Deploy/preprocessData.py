@@ -46,7 +46,7 @@ class preprocess():
             output = []
             framesLandmark = []
             model = FaceAlignment(landmarks_type=LandmarksType.TWO_D, face_detector='blazeface',
-                                  face_detector_kwargs={'back_model': True}, device='cpu')
+                                  face_detector_kwargs={'back_model': True}, device='cuda')
             for n in range(0, len(frames)):
                 img = (frames[n])
                 img = img.copy()
