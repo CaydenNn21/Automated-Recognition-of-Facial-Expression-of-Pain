@@ -31,8 +31,8 @@ class preprocess():
         # Tilt and align the face at centre, then crop the frames according to the face region
         self.frames = self.tiltAlign()
 
-        for i in range (len(self.frames)):
-            cv.imwrite(f'{"rawFrames"}\cropped_frame_{i}.png', cv.cvtColor(self.frames[i], cv.COLOR_BGR2RGB))
+        # for i in range (len(self.frames)):
+        #     cv.imwrite(f'{"rawFrames"}\cropped_frame_{i}.png', cv.cvtColor(self.frames[i], cv.COLOR_BGR2RGB))
 
         # self.tensor = self.padding_normalization(24)
         self.normalized_img()
@@ -46,7 +46,7 @@ class preprocess():
             output = []
             framesLandmark = []
             model = FaceAlignment(landmarks_type=LandmarksType.TWO_D, face_detector='blazeface',
-                                  face_detector_kwargs={'back_model': True}, device='cuda')
+                                  face_detector_kwargs={'back_model': True}, device='cpu')
             for n in range(0, len(frames)):
                 img = (frames[n])
                 img = img.copy()

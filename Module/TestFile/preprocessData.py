@@ -12,10 +12,11 @@ import torchvision.transforms as transforms
 
 
 class preprocess():
-    def __init__(self, frames):
+    def __init__(self, frames=None):
         super(preprocess, self).__init__()
-        self.frames = frames
-        
+        frames = [(cv.imread("D:\\Library\\Documents\\UM Lecture Notes & Tutorial\\FYP\\Dataset\\UNBC-McMaster Shoulder Pain Data\\Images\\042-ll042\\ll042t1afunaff\\ll042t1afunaff022.png"))]
+
+        self.frames = np.array(frames)
         # Select 21 frames from the video sequence for prediction
         # self.frames = self.selectFrame()
 
@@ -24,7 +25,6 @@ class preprocess():
 
         # Do landmark detection on the input frames for face recognition proposes
         self.landmarkDetection()
-
         # Mask the non-face area with black pixels
         self.frames = self.maskFace()
 
@@ -41,6 +41,7 @@ class preprocess():
 
     def landmarkDetection(self):
         try:
+
             frames = self.frames
             output = []
             framesLandmark = []
@@ -240,3 +241,5 @@ class preprocess():
     def get_preprocessed_frames(self):
         frames = self.normalized_frames
         return frames
+
+preprocess()
