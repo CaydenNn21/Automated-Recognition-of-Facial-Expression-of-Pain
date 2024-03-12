@@ -1,3 +1,6 @@
+# OBjectives
+- Detect and classify pain by using facial expression of pain using machine learning model
+
 # Introduction
 
 - This is the academic project with a title Automated Recognition of Facial Expression of Pain Using Machine Learning developement files.
