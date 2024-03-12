@@ -1,4 +1,5 @@
-# OBjectives
+# Objectives
+- Carry out data analysis and preprocessing method
 - Detect and classify pain by using facial expression of pain using machine learning model
 
 # Introduction
